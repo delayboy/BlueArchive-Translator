@@ -95,7 +95,7 @@ def dump_table(table_instance) -> list:
     WRAPPER_PASSWD_CONVERTION = TemplateString("%s(%s, password)")
     """Wrap the data has password.\n\nArgs: type_convert_method, getter"""
 
-    WRAPPER_ENUM_CONVERTION = TemplateString("%s(%s).name")
+    WRAPPER_ENUM_CONVERTION = TemplateString("%s if pure else %s(%s).name")
     """Wrap prop of enum type.\n\nArgs: enum_name, convertion"""
 
     WRAPPER_PROP_KV = TemplateString('"%s": %s,\n')
@@ -106,7 +106,7 @@ def dump_table(table_instance) -> list:
 
     WRAPPER_FUNC = TemplateString(
         """
-def dump_%s(excel_instance, password: bytes = b"") -> dict:
+def dump_%s(excel_instance, password: bytes = b"", pure: bool = False) -> dict:
     return {\n%s    }
 """
     )
@@ -373,7 +373,7 @@ class CSParser:
         return enums
 
     def __parse_struct_property(
-        self, prop_type: str, prop_name: str, prop_data: str
+            self, prop_type: str, prop_name: str, prop_data: str
     ) -> Property:
         """Extract struct from cs."""
         # Has list in struct if there have its length property.
@@ -411,7 +411,7 @@ class CSParser:
                     continue
 
                 if extracted_property := self.__parse_struct_property(
-                    prop_type, prop_name, struct_data
+                        prop_type, prop_name, struct_data
                 ):
                     struct_properties.append(extracted_property)
 
@@ -429,14 +429,14 @@ class CompileToPython:
     DUMP_WRAPPER_NAME = "dump_wrapper"
 
     def __init__(
-        self, enums: list[EnumType], structs: list[StructTable], extract_dir: str
+            self, enums: list[EnumType], structs: list[StructTable], extract_dir: str
     ) -> None:
         self.enums = enums
         self.structs = structs
         self.extract_dir = extract_dir
 
     def __type_in_struct_or_num(
-        self, prop_type: str, structs: list[StructTable], enums: list[EnumType]
+            self, prop_type: str, structs: list[StructTable], enums: list[EnumType]
     ) -> StructTable | EnumType | None:
         for enum in enums:
             if prop_type == enum.name and enum.underlying_type in DataFlag.__members__:
@@ -449,7 +449,7 @@ class CompileToPython:
         return None
 
     def __convert_scalar_type(
-        self, prop: Property, index: int, p_name: str, f_offset: int, t_size: int
+            self, prop: Property, index: int, p_name: str, f_offset: int, t_size: int
     ) -> tuple[str, str]:
         t_flag = DataFlag[prop.data_type].value
         if prop.is_list:
@@ -474,7 +474,7 @@ class CompileToPython:
         ), String.FB_SCALAR_PROPERTY_FUNCTION(p_name, p_name, t_flag, index, p_name)
 
     def __convert_string_type(
-        self, prop: Property, index: int, p_name: str, f_offset: int
+            self, prop: Property, index: int, p_name: str, f_offset: int
     ) -> tuple[str, str]:
         t_size = DataSize[prop.data_type].value
         if prop.is_list:
@@ -488,13 +488,13 @@ class CompileToPython:
         ), String.FB_STRING_AND_STRUCT_PROPERTY_FUNCTION(p_name, p_name, index, p_name)
 
     def __convert_enum_type(
-        self,
-        prop: Property,
-        enum: EnumType,
-        index: int,
-        p_name: str,
-        f_offset: int,
-        t_size: int,
+            self,
+            prop: Property,
+            enum: EnumType,
+            index: int,
+            p_name: str,
+            f_offset: int,
+            t_size: int,
     ) -> tuple[str, str]:
         t_flag = DataFlag[enum.underlying_type].value
         if prop.is_list:
@@ -519,7 +519,7 @@ class CompileToPython:
         ), String.FB_SCALAR_PROPERTY_FUNCTION(p_name, p_name, t_flag, index, p_name)
 
     def __convert_struct_type(
-        self, prop: Property, index: int, p_name: str, f_offset: int
+            self, prop: Property, index: int, p_name: str, f_offset: int
     ) -> tuple[str, str]:
         p_type = prop.data_type
         t_size = DataSize.struct.value
@@ -538,7 +538,7 @@ class CompileToPython:
             ), String.FB_LIST_AND_NON_SCALAR_PROPERTY_FUNCTION(
                 p_name, p_name, index, p_name, p_name, t_size, t_size
             )
-        
+
         return String.FB_STRUCT_PROPERTY_CLASS_METHODS(
             p_name,
             f_offset,
@@ -548,7 +548,7 @@ class CompileToPython:
         ), String.FB_STRING_AND_STRUCT_PROPERTY_FUNCTION(p_name, p_name, index, p_name)
 
     def __convert_isolated_type(
-        self, prop: Property, index: int, p_name: str, f_offset: int, t_size: int
+            self, prop: Property, index: int, p_name: str, f_offset: int, t_size: int
     ) -> tuple[str, str]:
         p_type = prop.data_type
         func = String.FB_LIST_AND_NON_SCALAR_PROPERTY_FUNCTION(
@@ -583,7 +583,7 @@ class CompileToPython:
         for enum in self.enums:
             enum_name = Utils.convert_name_to_available(enum.name)
             with open(
-                f"{os.path.join(self.extract_dir, enum_name)}.py", "wt", encoding="utf8"
+                    f"{os.path.join(self.extract_dir, enum_name)}.py", "wt", encoding="utf8"
             ) as file:
                 file.write(String.ENUM_CLASS(enum_name) + String.NEWLINE)
                 for member in enum.members:
@@ -638,7 +638,7 @@ class CompileToPython:
 
                 # Prop type is struct or enum.
                 elif prop_data := self.__type_in_struct_or_num(
-                    prop.data_type, self.structs, self.enums
+                        prop.data_type, self.structs, self.enums
                 ):
                     if isinstance(prop_data, StructTable):
                         method, func = self.__convert_struct_type(
@@ -666,9 +666,9 @@ class CompileToPython:
     def create_module_file(self) -> None:
         """Create flatbuffer module file."""
         with open(
-            os.path.join(self.extract_dir, "__init__.py"),
-            "wt",
-            encoding="utf8",
+                os.path.join(self.extract_dir, "__init__.py"),
+                "wt",
+                encoding="utf8",
         ) as file:
             for enum in self.enums:
                 enum_name = Utils.convert_name_to_available(enum.name)
@@ -689,7 +689,7 @@ class CompileToPython:
         elif prop.data_type == "bool":
             convertion = f"bool({String.WRAPPER_LIST_GETTER(p_name)})"
         elif prop_data := self.__type_in_struct_or_num(
-            prop.data_type, self.structs, self.enums
+                prop.data_type, self.structs, self.enums
         ):
             data_name = Utils.convert_name_to_available(prop_data.name)
             if isinstance(prop_data, StructTable):
@@ -699,12 +699,14 @@ class CompileToPython:
                 )
 
             elif isinstance(prop_data, EnumType):
+                conver_value_str = String.WRAPPER_PASSWD_CONVERTION(
+                    ConvertFlag[prop_data.underlying_type].value,
+                    String.WRAPPER_LIST_GETTER(p_name),
+                )
                 convertion = String.WRAPPER_ENUM_CONVERTION(
+                    conver_value_str,
                     data_name,
-                    String.WRAPPER_PASSWD_CONVERTION(
-                        ConvertFlag[prop_data.underlying_type].value,
-                        String.WRAPPER_LIST_GETTER(p_name),
-                    ),
+                    conver_value_str
                 )
 
         elif prop.data_type == "bool":
@@ -727,7 +729,7 @@ class CompileToPython:
         elif prop.data_type == "bool":
             func = f"bool({String.WRAPPER_GETTER(p_name)})"
         elif prop_data := self.__type_in_struct_or_num(
-            prop.data_type, self.structs, self.enums
+                prop.data_type, self.structs, self.enums
         ):
             data_name = Utils.convert_name_to_available(prop_data.name)
             if isinstance(prop_data, StructTable):
@@ -737,12 +739,14 @@ class CompileToPython:
                 )
 
             elif isinstance(prop_data, EnumType):
+                convert_value_str = String.WRAPPER_PASSWD_CONVERTION(
+                    ConvertFlag[prop_data.underlying_type].value,
+                    String.WRAPPER_GETTER(p_name),
+                )
                 func = String.WRAPPER_ENUM_CONVERTION(
+                    convert_value_str,
                     data_name,
-                    String.WRAPPER_PASSWD_CONVERTION(
-                        ConvertFlag[prop_data.underlying_type].value,
-                        String.WRAPPER_GETTER(p_name),
-                    ),
+                    convert_value_str
                 )
         elif prop.data_type == "bool":
             func = String.WRAPPER_GETTER(p_name)
@@ -804,10 +808,10 @@ from lib.encryption import xor, create_key, convert_short, convert_ushort, conve
 from . import *
     """
         self.enums_by_name = {enum.name: enum for enum in self.enums}
-        self.structs_by_name = {struct.name : struct for struct in self.structs}
+        self.structs_by_name = {struct.name: struct for struct in self.structs}
         os.makedirs(self.extract_dir, exist_ok=True)
         repack_path = os.path.join(self.extract_dir, "repack_wrapper.py")
-        
+
         with open(repack_path, "wt", encoding="utf8") as file:
             file.write(WRAPPER_PACK_BASE)
             file.write("\n\n")
@@ -816,7 +820,8 @@ from . import *
                 struct_name = Utils.convert_name_to_available(struct.name)
                 if struct_name.endswith("ExcelTable"):
                     record_type = struct_name[:-5]
-                    file.write(f"def pack_{struct_name}(builder: flatbuffers.Builder, dump_list: list, encrypt=True) -> int:\n")
+                    file.write(
+                        f"def pack_{struct_name}(builder: flatbuffers.Builder, dump_list: list, encrypt=True, pure=False) -> int:\n")
                     file.write("    offsets = []\n")
                     file.write("    for record in dump_list:\n")
                     file.write(f"        offsets.append(pack_{record_type}(builder, record, encrypt))\n")
@@ -829,14 +834,15 @@ from . import *
                     file.write(f"    return {struct_name}.End(builder)\n\n")
                     continue
 
-                file.write(f"def pack_{struct_name}(builder: flatbuffers.Builder, data: dict, encrypt=True) -> int:\n")
+                file.write(f"def pack_{struct_name}(builder: flatbuffers.Builder, data: dict, encrypt=True, pure=False) -> int:\n")
                 password_key = struct.name[:-5] if struct.name.endswith("Excel") else struct.name
                 file.write(f'    password = create_key("{password_key}") if encrypt else None\n')
-                
+
                 # Process all strings first
                 string_fields = [prop for prop in struct.properties if prop.data_type == "string" and not prop.is_list]
                 for prop in string_fields:
-                    file.write(f"    {prop.name}_off = builder.CreateString(encrypt_string(data.get('{prop.name}', ''), password))\n")
+                    file.write(
+                        f"    {prop.name}_off = builder.CreateString(encrypt_string(data.get('{prop.name}', ''), password))\n")
 
                 # Process vectors with proper element handling
                 vector_fields = [prop for prop in struct.properties if prop.is_list]
@@ -846,8 +852,10 @@ from . import *
                     file.write(f"        {prop.name}_items = data['{prop.name}']\n")
                     elem, data_type = self._get_conversion_code(prop, "item")
                     if data_type == "string":
-                        file.write(f"        {prop.name}_str_offsets = [builder.CreateString(encrypt_string(item, password)) for item in {prop.name}_items]\n")
-                        file.write(f"        {struct_name}.Start{prop.name}Vector(builder, len({prop.name}_str_offsets))\n")
+                        file.write(
+                            f"        {prop.name}_str_offsets = [builder.CreateString(encrypt_string(item, password)) for item in {prop.name}_items]\n")
+                        file.write(
+                            f"        {struct_name}.Start{prop.name}Vector(builder, len({prop.name}_str_offsets))\n")
                         file.write(f"        for offset in reversed({prop.name}_str_offsets):\n")
                         file.write(f"            builder.PrependUOffsetTRelative(offset)\n")
                     elif data_type in self.structs_by_name:
@@ -857,8 +865,9 @@ from . import *
                             print(data_type)
                         file.write(f"        {struct_name}.Start{prop.name}Vector(builder, len({prop.name}_items))\n")
                         file.write(f"        for item in reversed({prop.name}_items):\n")
-                        file.write(f"            builder.Prepend{DataFlag.__members__.get(data_type, DataFlag.int).value}({elem})\n")
-                    
+                        file.write(
+                            f"            builder.Prepend{DataFlag.__members__.get(data_type, DataFlag.int).value}({elem})\n")
+
                     file.write(f"        {prop.name}_vec = builder.EndVector(len({prop.name}_items))\n")
 
                 # Process scalar values
@@ -884,7 +893,7 @@ from . import *
         if data_type == "bool":
             return value_var, data_type
         if data_type in self.enums_by_name:
-            return f"convert_int(getattr({data_type}, {value_var}), password)", "int"
+            return f"convert_int({value_var} if pure else getattr({data_type}, {value_var}), password)", "int"
         elif data_type == "float":
             return f"encrypt_float({value_var}, password)", data_type
         elif data_type == "double":

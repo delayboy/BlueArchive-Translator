@@ -12,6 +12,7 @@
       <sourceFolder url="file://$MODULE_DIR$/other_support_project/UABEA-master" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/BlueArchive-Tools-main-蔚蓝档案解包汉化工具/python_embeded" />
       <excludeFolder url="file://$MODULE_DIR$/BlueArchive-Tools-main/python_embeded" />
+      <excludeFolder url="file://$MODULE_DIR$/python_embeded" />
     </content>
     <orderEntry type="jdk" jdkName="Python 3.10 (3)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />

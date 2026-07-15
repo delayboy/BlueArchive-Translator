@@ -7,8 +7,6 @@ from types import ModuleType
 from typing import Any, Union
 from zipfile import ZipFile, ZIP_DEFLATED
 import flatbuffers
-from FlatData.dump_wrapper import dump_real_CharacterDialogEventExcel
-from FlatData.CharacterDialogEventExcel import CharacterDialogEventExcel
 from lib.console import notice
 from lib.encryption import xor_with_key, zip_password
 from lib.structure import DBTable, SQLiteDataType
@@ -58,7 +56,7 @@ class TableProcess:
             )
 
     def _process_bytes_file(
-            self, file_name: str, data: bytes
+            self, file_name: str, data: bytes, use_pure=False
     ) -> tuple[dict[str, Any], str]:
         """Extract flatbuffer bytes file to dict
 
@@ -84,7 +82,7 @@ class TableProcess:
                             ".bytes") or Config.server != "CN":  # CN does not encrypt its Excel.zip (but does encrypt tables in sqlite3 databases such as ExcelDB.db)
                         data = xor_with_key(flatbuffer_class.__name__, data)
                     flat_buffer = getattr(flatbuffer_class, "GetRootAs")(data)
-                    obj = getattr(self.dump_wrapper_lib, "dump_table")(flat_buffer)
+                    obj = getattr(self.dump_wrapper_lib, "dump_table")(flat_buffer, b"", use_pure)
                 except:
                     pass
 
@@ -92,7 +90,7 @@ class TableProcess:
                 flat_buffer = getattr(flatbuffer_class, "GetRootAs")(data)
                 obj = getattr(
                     self.dump_wrapper_lib, f"dump_{flatbuffer_class.__name__}"
-                )(flat_buffer)
+                )(flat_buffer, b"", use_pure)
             return (obj, f"{flatbuffer_class.__name__}.json")
         except:
             # if json_data := self.__process_json_file(file_name, data):
@@ -100,7 +98,7 @@ class TableProcess:
             return {}, ""
 
     def _repack_bytes_file(
-            self, file_name: str, json_data: Union[dict, list], encrypt: bool = True, xor_encrypt: bool = True
+            self, file_name: str, json_data: Union[dict, list], encrypt=True, xor_encrypt=True, use_pure=False
     ) -> tuple[bytes, str]:
         """Repack dict to encrypted flatbuffer bytes
 
@@ -129,7 +127,7 @@ class TableProcess:
                 return b"", ""
 
             builder = flatbuffers.Builder(4096)
-            offset = pack_func(builder, json_data, encrypt)
+            offset = pack_func(builder, json_data, encrypt, use_pure)
             builder.Finish(offset)
             bytes_output = bytes(builder.Output())
 
@@ -157,7 +155,7 @@ class TableProcess:
         except:
             return bytes()
 
-    def _process_db_file(self, file_path: str, table_name: str = "") -> list[DBTable]:
+    def _process_db_file(self, file_path: str, table_name: str = "", use_pure=False) -> list[DBTable]:
         """Extract sqlite database file.
 
         Args:
@@ -182,7 +180,7 @@ class TableProcess:
                         col_type = SQLiteDataType[col.data_type].value
                         if col_type == bytes:
                             data, _ = self._process_bytes_file(
-                                table.replace("DBSchema", "Excel"), value
+                                table.replace("DBSchema", "Excel"), value, use_pure
                             )
                             row_data.append(data)
                         elif col_type == bool:
@@ -217,11 +215,11 @@ class TableProcess:
                 )
         return data, "", False
 
-    def extract_db_file(self, file_path: str) -> bool:
+    def extract_db_file(self, file_path: str, use_pure=False) -> bool:
         """Extract db file."""
         try:
             if db_tables := self._process_db_file(
-                    path.join(self.table_file_folder, file_path)
+                    path.join(self.table_file_folder, file_path), "", use_pure
             ):
                 db_name = file_path.removesuffix(".db")
                 for table in db_tables:
@@ -336,7 +334,7 @@ class TableProcess:
         except Exception as e:
             notice(f"Error when repack {file_name}: {e}")
 
-    def repack_to_db(self, file_name: str) -> None:
+    def repack_to_db(self, file_name: str, use_pure=False) -> None:
         """Repack JSON files back to original sqlite database."""
         try:
             db_name = file_name.removesuffix(".db")
@@ -371,9 +369,9 @@ class TableProcess:
                     for item in json_data:
                         row = []
                         find = True
-                        byte_data, _ = self._repack_bytes_file(file, item, False, False)
-                        if table_name.__contains__("CharacterDialogEvent"):
-                            item = dump_real_CharacterDialogEventExcel(CharacterDialogEventExcel.GetRootAs(byte_data))
+                        byte_data, _ = self._repack_bytes_file(file, item, False, False, use_pure)
+                        if table_name.__contains__("CharacterDialogEvent") and not use_pure:
+                            item, _ = self._process_bytes_file(file.removesuffix(".json"), byte_data, True)
                             find = True
                         for col in columns:
                             if col.name == "Bytes":
@@ -404,7 +402,7 @@ class TableProcess:
         except Exception as e:
             notice(f"Error when repack {file_name}: {e}", "error")
 
-    def process_table(self, file_path: str, type: str = "Extract") -> None:
+    def process_table(self, file_path: str, type: str = "Extract", use_pure=False) -> None:
         """Extract or Repack a table by file path.
 
         Args:
@@ -423,6 +421,6 @@ class TableProcess:
 
         if file_path.endswith(".db"):
             if type == "Repack":
-                self.repack_to_db(file_path)
+                self.repack_to_db(file_path, use_pure)
             else:
-                self.extract_db_file(file_path)
+                self.extract_db_file(file_path, use_pure)

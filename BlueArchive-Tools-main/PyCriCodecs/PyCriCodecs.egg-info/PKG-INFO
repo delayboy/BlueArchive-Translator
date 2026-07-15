@@ -1,0 +1,5 @@
+Metadata-Version: 2.4
+Name: PyCriCodecs
+Version: 0.4.11
+Summary: Python frontend with a C++ backend of managing Criware files of all kinds.
+Dynamic: summary

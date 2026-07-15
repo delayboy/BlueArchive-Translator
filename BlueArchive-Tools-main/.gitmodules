@@ -1,0 +1,6 @@
+[submodule "PyCriCodecs"]
+    path = PyCriCodecs
+    url = https://github.com/beichen23333/PyCriCodecs.git
+[submodule "crcmanip"]
+    path = crcmanip
+    url = https://github.com/beichen23333/crcmanip.git

@@ -1,0 +1,9 @@
+requests
+UnityPy
+cloudscraper
+xxhash
+pycryptodome
+flatbuffers
+pykakasi
+cloudscraper
+pyaxmlparser

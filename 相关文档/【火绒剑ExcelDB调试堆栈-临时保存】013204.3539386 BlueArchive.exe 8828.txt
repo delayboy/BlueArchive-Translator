@@ -1,0 +1,86 @@
+01:32:04.3539386 BlueArchive.exe 8828 FILE_open C:\Program Files (x86)\Steam\steamapps\common\BlueArchive\BlueArchive_Data\StreamingAssets\PUB\Resource\Preload\TableBundles\ExcelDB.db access:0x00120089 alloc_size:0 attrib:0x00000000 share_access:0x00000003 disposition:0x00000001 options:0x00000060  0x00000000 [The operation completed successfully.  ]
+
+0 0x77EEF814ntdll.dll+0x9f814
+1 0x7556A761KernelBase.dll+0x2a761
+2 0x7556A37CKernelBase.dll+0x2a37c
+3 0xC9209871sqlcipher.dll+0xd9871sqlcipher.dll!sqlite3changeset_start+0xcd2f5
+4 0xC938140Asqlcipher.dll+0x25140asqlcipher.dll!sqlite3changeset_start+0x244e8e
+5 0xC93344C1sqlcipher.dll+0x2044c1sqlcipher.dll!sqlite3changeset_start+0x1f7f45
+6 0xC92D2470sqlcipher.dll+0x1a2470sqlcipher.dll!sqlite3changeset_start+0x195ef4
+7 0xD3E4341CGameAssembly.dll+0x9a341c
+8 0xD4C8348FGameAssembly.dll+0x17e348f
+9 0xD4C8484FGameAssembly.dll+0x17e484f
+10 0xD7D3B01BGameAssembly.dll+0x489b01b
+11 0xD7D009EAGameAssembly.dll+0x48609ea
+12 0xD4B82F97GameAssembly.dll+0x16e2f97
+13 0xD4B1AA5BGameAssembly.dll+0x167aa5b
+14 0xD66914EFGameAssembly.dll+0x31f14ef
+15 0xD4B0ECF7GameAssembly.dll+0x166ecf7
+16 0xD4B14AB3GameAssembly.dll+0x1674ab3
+17 0xD4B0DC4EGameAssembly.dll+0x166dc4e
+18 0xD4B14049GameAssembly.dll+0x1674049
+19 0xD4B0DDBEGameAssembly.dll+0x166ddbe
+20 0xD4B13C70GameAssembly.dll+0x1673c70
+21 0xDCE0E727GameAssembly.dll+0x996e727
+22 0xD3894C52GameAssembly.dll+0x3f4c52
+23 0xD3894ACBGameAssembly.dll+0x3f4acb
+24 0xE1097068UnityPlayer.dll+0x627068
+25 0xE109A0C2UnityPlayer.dll+0x62a0c2
+26 0xE10B5C55UnityPlayer.dll+0x645c55
+27 0xE0DC2A54UnityPlayer.dll+0x352a54
+28 0xE0F14DBAUnityPlayer.dll+0x4a4dba
+29 0xE0F14E60UnityPlayer.dll+0x4a4e60
+30 0xE0F17B38UnityPlayer.dll+0x4a7b38
+31 0xE111405AUnityPlayer.dll+0x6a405a
+32 0xE1112D8BUnityPlayer.dll+0x6a2d8b
+33 0xE1117787UnityPlayer.dll+0x6a7787
+34 0xE111963BUnityPlayer.dll+0x6a963b
+35 0x0B4911F2BlueArchive.exe+0x11f2
+36 0x778C244Dkernel32.dll+0x1244d
+37 0x77EADF78ntdll.dll+0x5df78
+
+
+01:32:04.3539386 BlueArchive.exe 8828 FILE_read C:\Program Files (x86)\Steam\steamapps\common\BlueArchive\BlueArchive_Data\StreamingAssets\PUB\Resource\Preload\TableBundles\ExcelDB.db offset:0x00000000 datalen:0x00000064  0x00000000 [The operation completed successfully.  ]
+
+0 0x77EEEE34ntdll.dll+0x9ee34
+1 0x7556C1A8KernelBase.dll+0x2c1a8
+2 0xC9205D46sqlcipher.dll+0xd5d46sqlcipher.dll!sqlite3changeset_start+0xc97ca
+3 0xC9334544sqlcipher.dll+0x204544sqlcipher.dll!sqlite3changeset_start+0x1f7fc8
+4 0xC92D2470sqlcipher.dll+0x1a2470sqlcipher.dll!sqlite3changeset_start+0x195ef4
+5 0xD3E4341CGameAssembly.dll+0x9a341c
+6 0xD4C8348FGameAssembly.dll+0x17e348f
+7 0xD4C8484FGameAssembly.dll+0x17e484f
+8 0xD7D3B01BGameAssembly.dll+0x489b01b
+9 0xD7D009EAGameAssembly.dll+0x48609ea
+10 0xD4B82F97GameAssembly.dll+0x16e2f97
+11 0xD4B1AA5BGameAssembly.dll+0x167aa5b
+12 0xD66914EFGameAssembly.dll+0x31f14ef
+13 0xD4B0ECF7GameAssembly.dll+0x166ecf7
+14 0xD4B14AB3GameAssembly.dll+0x1674ab3
+15 0xD4B0DC4EGameAssembly.dll+0x166dc4e
+16 0xD4B14049GameAssembly.dll+0x1674049
+17 0xD4B0DDBEGameAssembly.dll+0x166ddbe
+18 0xD4B13C70GameAssembly.dll+0x1673c70
+19 0xDCE0E727GameAssembly.dll+0x996e727
+20 0xD3894C52GameAssembly.dll+0x3f4c52
+21 0xD3894ACBGameAssembly.dll+0x3f4acb
+22 0xE1097068UnityPlayer.dll+0x627068
+23 0xE109A0C2UnityPlayer.dll+0x62a0c2
+24 0xE10B5C55UnityPlayer.dll+0x645c55
+25 0xE0DC2A54UnityPlayer.dll+0x352a54
+26 0xE0F14DBAUnityPlayer.dll+0x4a4dba
+27 0xE0F14E60UnityPlayer.dll+0x4a4e60
+28 0xE0F17B38UnityPlayer.dll+0x4a7b38
+29 0xE111405AUnityPlayer.dll+0x6a405a
+30 0xE1112D8BUnityPlayer.dll+0x6a2d8b
+31 0xE1117787UnityPlayer.dll+0x6a7787
+32 0xE111963BUnityPlayer.dll+0x6a963b
+33 0x0B4911F2BlueArchive.exe+0x11f2
+34 0x778C244Dkernel32.dll+0x1244d
+35 0x77EADF78ntdll.dll+0x5df78
+
+
+
+
+
+

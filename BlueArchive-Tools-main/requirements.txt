@@ -1,0 +1,15 @@
+setuptools
+flatbuffers
+python-dotenv
+pycryptodome
+xxhash
+requests
+cloudscraper
+unitypy
+pillow
+click
+tqdm
+pydub
+lxml
+./PyCriCodecs
+./crcmanip

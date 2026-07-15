@@ -1,0 +1,291 @@
+name: Update
+
+on:
+  workflow_dispatch:
+  repository_dispatch:
+    types: [restart]
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  update:
+    strategy:
+      fail-fast: true
+      matrix:
+        server: [CN, GL, JP, JPPC]
+    runs-on: ubuntu-latest
+    env:
+      PYTHONUTF8: 1
+      PYTHONUNBUFFERED: "1"
+    outputs:
+      should_restart: ${{ steps.check_reason.outputs.should_restart }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0'
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Set up Node.js
+        if: matrix.server == 'JPPC'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install asar tool
+        if: matrix.server == 'JPPC'
+        run: npm install -g @electron/asar
+
+      - name: Install SSH Key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          known_hosts: unnecessary
+          if_key_exists: replace
+
+      - name: Login
+        run: |
+          git config --global user.email "actions@github.com"
+          git config --global user.name "GitHub Actions"
+
+      - name: Install requirements
+        run: |
+          pip install -r requirements.txt
+
+      - name: Clone BA-PC-SRC
+        if: matrix.server == 'JPPC'
+        run: |
+          git clone git@github.com:beichen23333/BA-PC-SRC.git
+
+      - name: Run Update
+        id: update
+        run: |
+          start_time=$(date +%s)
+          timeout_limit=$((4 * 60 * 60))
+          
+          while true; do
+            current_time=$(date +%s)
+            elapsed=$((current_time - start_time))
+            if [ $elapsed -ge $timeout_limit ]; then
+              echo "timeout=true" >> $GITHUB_OUTPUT
+              break
+            fi
+
+            python -m update.update ${{ matrix.server }}
+
+            if [ -f "UPDATE_FOUND" ]; then
+              echo "detected=true" >> $GITHUB_OUTPUT
+              if [ -f "MAJOR_UPDATE" ]; then
+                echo "major=true" >> $GITHUB_OUTPUT
+              fi
+              break
+            fi
+            sleep 60
+          done
+
+      - name: Commit and Push Changes
+        if: steps.update.outputs.detected == 'true'
+        run: |
+          git pull
+          git add other/BA_${{ matrix.server }}.env
+          git commit -m "${{ matrix.server }}服务器存在变动。"
+          git push
+
+      - name: Get Version Name
+        if: steps.update.outputs.major == 'true' && matrix.server != 'JPPC'
+        id: get_version
+        run: |
+          chmod +x ./get/get_version.sh
+          VERSION=$(./get/get_version.sh ${{ matrix.server }} false)
+          echo "version_name=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Compress Data
+        if: steps.update.outputs.major == 'true' && matrix.server != 'JPPC'
+        run: |
+          7z a "${{ steps.get_version.outputs.version_name }}.zip" Dumps/ FlatData/
+
+      - name: Sync Zip to FlatData Main
+        if: steps.update.outputs.major == 'true' && matrix.server != 'JPPC'
+        run: |
+          git clone git@github.com:beichen23333/BA-FlatData.git
+          cd BA-FlatData
+
+          git checkout main
+          git pull origin main
+          cp "../${{ steps.get_version.outputs.version_name }}.zip" .
+          git add "${{ steps.get_version.outputs.version_name }}.zip"
+          git commit -m "上传${{ steps.get_version.outputs.version_name }}.zip"
+          git push origin main
+
+      - name: Sync FlatData to Server Branch
+        if: steps.update.outputs.major == 'true' && matrix.server != 'JPPC'
+        run: |
+          cd BA-FlatData
+
+          git fetch origin ${{ matrix.server }}
+          git checkout ${{ matrix.server }}
+          git pull origin ${{ matrix.server }}
+
+          cp -r ../FlatData/* .
+
+          git add .
+          if ! git diff-index --quiet HEAD; then
+            git commit -m "提交FlatData，版本${{ steps.get_version.outputs.version_name }}"
+            git push origin ${{ matrix.server }}
+          else
+            echo "没有检测到 FlatData 变动，跳过提交。"
+          fi
+
+      - name: Update BA-PC-SRC
+        if: steps.update.outputs.major == 'true' && matrix.server == 'JPPC'
+        run: |
+          cd BA-PC-SRC
+
+          git add .
+          git commit -m "更新PC源码。"
+          git push origin main
+
+      - name: Extractor Workflows
+        if: steps.update.outputs.detected == 'true' && matrix.server != 'JPPC'
+        run: |
+          TYPES=("Media" "Bundle")
+
+          if [[ "${{ steps.update.outputs.major }}" == "true" && ( "${{ matrix.server }}" == "GL" || "${{ matrix.server }}" == "JP" ) ]]; then
+            echo "大版本更新且为 GL/JP，密钥已变动，跳过 Table 处理。"
+            Build_APK=true
+
+            ENV_FILE="other/BA_${{ matrix.server }}.env"
+            SERVER_INFO_URL=$(grep "^ServerInfoDataUrl=" "$ENV_FILE" | cut -d'=' -f2-)
+            MODIFIED_URL=$(echo "$SERVER_INFO_URL" | sed 's/bluearchiveyostar\.com/bluearchive.help/g')
+            echo "修改后ServerInfoDataUrl: $MODIFIED_URL"
+
+            COEXIST_VALUES=("com.YostarJP.BlueArchive" "com.BCJP.BlueArchive")
+            for COEXIST in "${COEXIST_VALUES[@]}"; do
+              curl -X POST \
+              -H "Accept: application/vnd.github+json" \
+              -H "Authorization: token ${{ secrets.UPDATE_TOKEN }}" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              https://api.github.com/repos/${{ github.repository }}/dispatches \
+              -d "{
+                \"event_type\": \"BuildAPK\",
+                \"client_payload\": {
+                  \"server\": \"JP\",
+                  \"sdkurl\": \"https://jp-sdk-api.bluearchive.help/\",
+                  \"gamemainconfig\": \"{\\\"ServerInfoDataUrl\\\": \\\"$MODIFIED_URL\\\"}\",
+                  \"coexist\": \"$COEXIST\",
+                  \"modifylogin\": \"zho\",
+                  \"replace\": true,
+                  \"modifybundle\": true,
+                  \"repo_url\": \"https://github.com/beichen23333/BAJpApkSrc.git\",
+                  \"repo\": \"BAJpApkSrc\",
+                  \"trustcert\": true
+                }
+              }"
+            done
+          else
+            TYPES+=("Table")
+            Build_APK=false
+          fi
+          echo "Build_APK=$Build_APK" >> $GITHUB_ENV
+          if [[ "${{ matrix.server }}" == "GL" || "${{ matrix.server }}" == "CN" ]]; then
+            # 韩配/中配
+            TYPES+=("Voice")
+          fi
+          for type in "${TYPES[@]}"; do
+            curl -X POST \
+              -H "Accept: application/vnd.github+json" \
+              -H "Authorization: token ${{ secrets.UPDATE_TOKEN }}" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              https://api.github.com/repos/${{ github.repository }}/dispatches \
+              -d "{\"event_type\": \"$type\", \"client_payload\": {\"server\": \"${{ matrix.server }}\"}}"
+          done
+
+      - name: Send email on Build APK
+        if: env.Build_APK == 'true'
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: ⚠️ BA更新提醒 - ${{ matrix.server }} 大版本更新
+          body: |
+            检测到 ${{ matrix.server }} 发生大版本更新，版本 ${{ steps.get_version.outputs.version_name }} 已部署APK修改。
+            由于密钥限制，Table 处理已被跳过，请手动提交密钥。
+
+            如果已手动更新密钥，请点击下方链接部署 Table：
+            https://github.com/${{ github.repository }}/actions/workflows/Extractor.yml?query=branch:main
+            
+            触发运行ID: ${{ github.run_id }}
+          to: ${{ secrets.TARGET_EMAIL }}
+          from: 北辰汉化组 <${{ secrets.EMAIL_USERNAME }}>
+
+      - name: Send email on Update
+        if: steps.update.outputs.detected == 'true' && matrix.server != 'JPPC' && env.Build_APK != 'true'
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: ⚠️ BA更新提醒 - ${{ matrix.server }} 版本更新
+          body: |
+            检测到 ${{ matrix.server }} 发生版本更新。
+            目前正在部署自动化处理，稍后将发送处理进度。
+            
+            触发运行ID: ${{ github.run_id }}
+          to: ${{ secrets.TARGET_EMAIL }}
+          from: 北辰汉化组 <${{ secrets.EMAIL_USERNAME }}>
+
+      - name: Terminate and Trigger Restart
+        id: check_reason
+        run: |
+          echo "should_restart=true" >> $GITHUB_OUTPUT
+          # gh run cancel ${{ github.run_id }}
+          curl -L \
+            -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ secrets.UPDATE_TOKEN }}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/cancel
+
+  restart:
+    needs: update
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Restart Workflow
+        if: needs.update.outputs.should_restart == 'true'
+        run: |
+          curl -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: token ${{ secrets.UPDATE_TOKEN }}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            https://api.github.com/repos/${{ github.repository }}/dispatches \
+          -d '{"event_type": "restart"}'
+
+      - name: Send email on Restart
+        if: needs.update.outputs.should_restart != 'true'
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: ⚠️ 警告 - Restart流程因未知原因崩溃
+          body: |
+            检测到Restart流程因未知原因被终止，您可以点击下方链接查看详情。
+            https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          to: ${{ secrets.TARGET_EMAIL }}
+          from: 北辰汉化组 <${{ secrets.EMAIL_USERNAME }}>

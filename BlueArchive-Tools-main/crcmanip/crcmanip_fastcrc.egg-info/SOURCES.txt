@@ -1,0 +1,8 @@
+LICENSE
+README.md
+fastcrc.c
+setup.py
+crcmanip_fastcrc.egg-info/PKG-INFO
+crcmanip_fastcrc.egg-info/SOURCES.txt
+crcmanip_fastcrc.egg-info/dependency_links.txt
+crcmanip_fastcrc.egg-info/top_level.txt

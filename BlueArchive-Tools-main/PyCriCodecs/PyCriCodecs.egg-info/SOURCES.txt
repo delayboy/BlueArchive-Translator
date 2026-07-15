@@ -1,0 +1,17 @@
+README.md
+setup.py
+CriCodecs/CriCodecs.cpp
+PyCriCodecs/__init__.py
+PyCriCodecs/acb.py
+PyCriCodecs/adx.py
+PyCriCodecs/awb.py
+PyCriCodecs/chunk.py
+PyCriCodecs/cpk.py
+PyCriCodecs/hca.py
+PyCriCodecs/ivf.py
+PyCriCodecs/usm.py
+PyCriCodecs/utf.py
+PyCriCodecs.egg-info/PKG-INFO
+PyCriCodecs.egg-info/SOURCES.txt
+PyCriCodecs.egg-info/dependency_links.txt
+PyCriCodecs.egg-info/top_level.txt

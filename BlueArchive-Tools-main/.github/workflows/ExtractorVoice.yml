@@ -1,0 +1,62 @@
+name: Extractor Voice
+
+on:
+  workflow_dispatch:
+  repository_dispatch:
+    types: [Voice]
+
+permissions:
+  contents: write
+
+jobs:
+  Extractor:
+    runs-on: ubuntu-latest
+    env:
+      PYTHONUTF8: 1
+      PYTHONUNBUFFERED: "1"
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install SSH Key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          known_hosts: unnecessary
+          if_key_exists: replace
+
+      - name: Install requirements
+        run: |
+          pip install -r requirements.txt
+          sudo apt install ffmpeg
+
+      - name: Login
+        run: |
+          git config --global user.email "actions@github.com"
+          git config --global user.name "GitHub Actions"
+
+      - name: Prepare Voice
+        run: |
+          git clone git@github.com:beichen23333/BA-Voice.git Voice
+          cd Voice
+
+      - name: Run Extractor
+        run: |
+          python extractor_voice.py
+
+      - name: Push Voice.json
+        run: |
+          git add other/Voice.json
+          if ! git diff-index --quiet HEAD; then
+              git commit -m "提交Voice.json"
+              git push
+          else
+            echo "没有检测到变动，跳过提交。"
+          fi

@@ -1,0 +1,133 @@
+name: Build APK
+
+on:
+  repository_dispatch:
+    types: [BuildAPK]
+  workflow_dispatch:
+    inputs:
+      server:
+        description: '服务器 （JP, GL）'
+        required: false
+        type: string
+        default: 'JP'
+      sdkurl:
+        description: '修改SDKURL（留空则不修改）（日服限定）'
+        required: false
+        type: string
+        default: 'https://jp-sdk-api.bluearchive.help/'
+      gamemainconfig:
+        description: '修改GameMainConfig（留空则不修改）（日服限定）'
+        required: false
+        type: string
+        default: '{"ServerInfoDataUrl": "", "SkipTutorial": "True"}'
+      coexist:
+        description: '自定义包名（留空则不修改）'
+        required: false
+        type: string
+        default: 'com.BCJP.BlueArchive'
+      modifylogin:
+        description: '修改登录界面语言（留空则不修改）（日服限定）'
+        required: false
+        type: string
+        default: 'zho'
+      replace:
+        description: '是否替换assets资源'
+        required: false
+        type: boolean
+        default: true
+      modifybundle:
+        description: '是否修改bundle资源'
+        required: false
+        type: boolean
+        default: true
+      repo_url:
+        description: '资源仓库地址'
+        required: true
+        type: string
+        default: 'https://github.com/beichen23333/BAJpApkSrc.git'
+      repo:
+        description: '资源文件夹路径'
+        required: false
+        type: string
+        default: 'BAJpApkSrc'
+      trustcert:
+        description: '是否信任CA证书（reqable）'
+        required: false
+        type: boolean
+        default: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      PYTHONUTF8: 1
+      PYTHONUNBUFFERED: "1"
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0'
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install SSH Key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          known_hosts: unnecessary
+          if_key_exists: replace
+
+      - name: Login
+        run: |
+          git config --global user.email "actions@github.com"
+          git config --global user.name "GitHub Actions"
+
+      - name: Install Python requirements
+        run: |
+          pip install -r requirements.txt
+          sudo apt install -y android-sdk-build-tools
+          git clone ${{ github.event.client_payload.repo_url || inputs.repo_url }} ${{ github.event.client_payload.repo || inputs.repo }}
+
+      - name: Run update_apk
+        env:
+          SERVER: ${{ github.event.client_payload.server || inputs.server }}
+          SDKURL: ${{ github.event.client_payload.sdkurl || inputs.sdkurl }}
+          GAMEMAINCONFIG: ${{ github.event.client_payload.gamemainconfig || inputs.gamemainconfig }}
+          COEXIST: ${{ github.event.client_payload.coexist || inputs.coexist }}
+          MODIFYLOGIN: ${{ github.event.client_payload.modifylogin || inputs.modifylogin }}
+          REPLACE: ${{ github.event.client_payload.replace || inputs.replace }}
+          MODIFYBUNDLE: ${{ github.event.client_payload.modifybundle || inputs.modifybundle }}
+          REPO: ${{ github.event.client_payload.repo || inputs.repo }}
+          TRUSTCERT: ${{ github.event.client_payload.trustcert || inputs.trustcert }}
+        run: |
+          CMD="python -m update.update_apk"
+          
+          # str
+          if [ -n "$SERVER" ]; then CMD="$CMD --server '$SERVER'"; fi
+          if [ -n "$SDKURL" ]; then CMD="$CMD --sdkurl '$SDKURL'"; fi
+          if [ -n "$GAMEMAINCONFIG" ]; then CMD="$CMD --gamemainconfig '$GAMEMAINCONFIG'"; fi
+          if [ -n "$COEXIST" ]; then CMD="$CMD --coexist '$COEXIST'"; fi
+          if [ -n "$MODIFYLOGIN" ]; then CMD="$CMD --modifylogin '$MODIFYLOGIN'"; fi
+          if [ -n "$REPO" ]; then CMD="$CMD --repo '$REPO'"; fi
+          
+          # bool
+          if [ "$REPLACE" == "true" ]; then CMD="$CMD --replace"; fi
+          if [ "$MODIFYBUNDLE" == "true" ]; then CMD="$CMD --modifybundle"; fi
+          if [ "$TRUSTCERT" == "true" ]; then CMD="$CMD --trustcert"; fi
+          
+          echo "执行命令: $CMD"
+          eval $CMD
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Build-APK-Result
+          path: '**/*.apk'

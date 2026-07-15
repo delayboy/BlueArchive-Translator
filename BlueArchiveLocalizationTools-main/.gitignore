@@ -1,0 +1,14 @@
+__pycache__/
+venv/
+**/FlatData/
+input/
+output/
+**/Table/
+build/
+*.pyd
+*.db
+*Temp/
+venv-ubuntu/
+Extracted/
+Replacements/
+scenariovoice/

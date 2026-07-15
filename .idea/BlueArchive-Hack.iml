@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="PYTHON_MODULE" version="4">
+  <component name="NewModuleRootManager">
+    <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/BlueArchive-Tools-main" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/BlueArchiveLocalizationTools-main" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/other_support_project/Blue-Archive-Asset-Downloader-main" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/other_support_project/BlueArchive-Tools-CLI-1.2" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/other_support_project/Cpp2IL-development" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/other_support_project/Il2CppInspectorRedux-master" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/other_support_project/SpineSkeletonDataConverter-main" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/other_support_project/UABEA-master" isTestSource="false" />
+      <excludeFolder url="file://$MODULE_DIR$/BlueArchive-Tools-main-蔚蓝档案解包汉化工具/python_embeded" />
+      <excludeFolder url="file://$MODULE_DIR$/BlueArchive-Tools-main/python_embeded" />
+    </content>
+    <orderEntry type="jdk" jdkName="Python 3.10 (3)" jdkType="Python SDK" />
+    <orderEntry type="sourceFolder" forTests="false" />
+  </component>
+  <component name="PyDocumentationSettings">
+    <option name="format" value="PLAIN" />
+    <option name="myDocStringFormat" value="Plain" />
+  </component>
+  <component name="PyNamespacePackagesService">
+    <option name="namespacePackageFolders">
+      <list>
+        <option value="$MODULE_DIR$/BlueArchiveLocalizationTools-main" />
+      </list>
+    </option>
+  </component>
+  <component name="TestRunnerService">
+    <option name="PROJECT_TEST_RUNNER" value="py.test" />
+  </component>
+</module>

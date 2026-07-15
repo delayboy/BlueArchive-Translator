@@ -4,9 +4,9 @@ import sys
 import sqlcipher3
 import hashlib
 
-DB_PATH = r"c:\Users\Benson\Desktop\BlueArchive-Hack\BlueArchive_Data\StreamingAssets\Resource\Preload\TableBundles\ExcelDB.db"
+PROJECT_ROOT = os.path.dirname(os.path.abspath("."))
+DB_PATH = os.path.join(PROJECT_ROOT, r"BlueArchive_Data\StreamingAssets\PUB\Resource\Preload\TableBundles\ExcelDB.db")
 KEY_HEX = "efa143094711b6563ec2132d4d6bbe8533d4e291ed4820bdb515b26bb57bb3f0"
-
 
 
 def format_row(row, blob_index=None):
@@ -23,6 +23,7 @@ def format_row(row, blob_index=None):
         else:
             formatted.append(value)
     return tuple(formatted)
+
 
 def connect():
     if not os.path.exists(DB_PATH):
@@ -66,7 +67,7 @@ def list_tables(conn):
 
     print(f"\n[*] Found {len(tables)} tables/views:")
     print(f"    {'NAME':<55} {'TYPE':<6} {'ROWS':>10}")
-    print(f"    {'-'*55} {'-'*6} {'-'*10}")
+    print(f"    {'-' * 55} {'-' * 6} {'-' * 10}")
 
     for name, type_ in tables:
         try:
@@ -84,7 +85,7 @@ def list_tables(conn):
         print(f"\n[*] Schema preview ({first}):")
         for line in create_sql.split("\n"):
             print(f"    {line}")
-            
+
         cur.execute(f"SELECT * FROM CharacterDialogEventDBSchema LIMIT 1 ")
         results = cur.fetchall()
 

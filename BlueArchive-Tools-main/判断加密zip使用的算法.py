@@ -1,5 +1,9 @@
 import pyzipper
-with pyzipper.AESZipFile('C:/Users/Benson/Desktop/BlueArchive-Hack/BlueArchive_Data/StreamingAssets/Resource/Preload/TableBundles/Excel.zip', 'r') as zf:
+import os
+
+PROJECT_ROOT = os.path.dirname(os.path.abspath("."))
+zip_path = os.path.join(PROJECT_ROOT, 'BlueArchive_Data/StreamingAssets/PUB/Resource/Preload/TableBundles/Excel.zip')
+with pyzipper.AESZipFile(zip_path, 'r') as zf:
     # 查看第一个加密文件的加密类型
     # 获取所有文件信息
     infos = zf.infolist()

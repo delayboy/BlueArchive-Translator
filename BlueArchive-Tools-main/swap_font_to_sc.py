@@ -20,21 +20,23 @@ import zlib
 # crcmanip_fastcrc.pyd 在 Windows 上有 PyLong_AsLong 溢出 bug，
 # 先打补丁再用 BundleExtractor（它内部会调 crcmanip 算法修补 CRC）
 from crc32_patch import monkeypatch_crcmanip  # noqa: E402
+
 monkeypatch_crcmanip()
 
 from xtractor.bundle import BundleExtractor  # noqa: E402
-TOOLS_ROOT = r'c:\Users\Benson\Desktop\BlueArchive-Hack\BlueArchive-Tools-main'
-PROJECT_ROOT = r'c:\Users\Benson\Desktop\BlueArchive-Hack'
+
+TOOLS_ROOT = os.path.abspath(".")
+PROJECT_ROOT = os.path.dirname(os.path.abspath("."))
 
 # 用户已经把 bundle 拷贝到这个路径（注意是 windows 小写）
 BUNDLE_PATH = os.path.join(
     PROJECT_ROOT,
-    'BlueArchive_Data', 'StreamingAssets', 'PUB', 'Resource', 'GameData', 'windows',
+    'BlueArchive_Data', 'StreamingAssets', 'PUB', 'Resource', 'Preload', 'windows',
     'prologdepengroup-assets-_mx-uis-_mxcommon-_mxprolog-2026-03-13_assets_all_842690403.bundle',
 )
 
 # 游戏真实路径（打补丁后从这里拷回去）
-GAME_BUNDLE_PATH = r'D:\SteamLibrary\steamapps\common\BlueArchive\BlueArchive_Data\StreamingAssets\PUB\Resource\Preload\Windows\prologdepengroup-assets-_mx-uis-_mxcommon-_mxprolog-2026-03-13_assets_all_842690403.bundle'
+GAME_BUNDLE_PATH = r'.\SteamLibrary\steamapps\common\BlueArchive\BlueArchive_Data\StreamingAssets\PUB\Resource\Preload\Windows\prologdepengroup-assets-_mx-uis-_mxcommon-_mxprolog-2026-03-13_assets_all_842690403.bundle'
 
 DEFAULT_REGULAR = os.path.join(PROJECT_ROOT, 'fonts', 'NotoSansSC-Regular.otf')
 DEFAULT_BOLD = os.path.join(PROJECT_ROOT, 'fonts', 'NotoSansSC-Bold.otf')
@@ -67,11 +69,13 @@ def verify_bundle2(path: str) -> None:
     if not found:
         print('    [警告] bundle 里没找到 Font 资源 — 替换可能失败！')
 
+
 def verify_bundle(path: str) -> None:
     from utils.util import CommandUtils
     success, err = CommandUtils.run_command(
-            "c:/Users/Benson/Desktop/BlueArchive-Hack/BlueArchive-Tools-main/tools/BlueArchiveTools.CLI.exe", "uabea", "list", "-f", path
-        )
+        "./tools/BlueArchiveTools.CLI.exe", "uabea", "list", "-f", path
+    )
+
 
 def main() -> int:
     parser = argparse.ArgumentParser(description='把 Tw 繁体字体替换成简体')

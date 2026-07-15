@@ -1,0 +1,22 @@
+<Solution>
+  <Folder Name="/Cpp2IL/">
+    <Project Path="Cpp2IL/LibCpp2IL/LibCpp2IL.csproj" />
+    <Project Path="Cpp2IL/WasmDisassembler/WasmDisassembler.csproj" />
+  </Folder>
+  <Folder Name="/Il2CppInspectorRedux/">
+    <Project Path="Il2CppInspectorRedux/Il2CppInspector.CLI/Il2CppInspector.CLI.csproj" />
+    <Project Path="Il2CppInspectorRedux/VersionedSerialization.Generator/VersionedSerialization.Generator.csproj" />
+    <Project Path="Il2CppInspectorRedux/VersionedSerialization/VersionedSerialization.csproj" />
+  </Folder>
+  <Folder Name="/Il2CppInspectorRedux/Bin2Object/">
+    <Project Path="Il2CppInspectorRedux/Bin2Object/Bin2Object/Bin2Object.csproj" />
+  </Folder>
+  <Folder Name="/Il2CppInspectorRedux/Il2CppInspector.Common/">
+    <Project Path="Il2CppInspectorRedux/Il2CppInspector.Common/Il2CppInspector.csproj" />
+  </Folder>
+  <Folder Name="/UABEA/">
+    <Project Path="UABEA/UABEAvalonia/UABEAvalonia.csproj" />
+  </Folder>
+  <Project Path="BlueArchiveTools.CLI/BlueArchiveTools.CLI.csproj" />
+  <Project Path="cn_metadata_exporter/cn_metadata_exporter.csproj" />
+</Solution>

@@ -1,0 +1,38 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <WarningLevel>0</WarningLevel>
+    <AnalysisLevel>none</AnalysisLevel>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\cn_metadata_exporter\cn_metadata_exporter.csproj" />
+    <ProjectReference Include="..\UABEA\UABEAvalonia\UABEAvalonia.csproj" />
+    <ProjectReference Include="..\Il2CppInspectorRedux\Il2CppInspector.CLI\Il2CppInspector.CLI.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="dump.cs" />
+    <Content Remove="dump.cs" />
+    <None Include="dump.cs" />
+    <Compile Remove="Dump/**/*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MemoryPack" Version="1.21.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="..\UABEA\ReleaseFiles\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <Link>%(RecursiveDir)%(FileName)%(Extension)</Link>
+    </Content>
+  </ItemGroup>
+
+</Project>

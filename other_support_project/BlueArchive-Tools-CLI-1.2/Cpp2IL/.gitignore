@@ -1,0 +1,15 @@
+
+packages/
+
+\.idea/
+
+bin/
+obj/
+
+.vs/
+
+*.user
+
+launchsettings.json
+
+artifacts/

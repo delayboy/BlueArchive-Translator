@@ -1,0 +1,95 @@
+name: Build and Release UABEA
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ master ]
+    tags: 
+      - 'v*'
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: windows-2022
+            platform: windows
+            artifact_name: uabea-windows
+          - os: ubuntu-22.04
+            platform: ubuntu
+            artifact_name: uabea-ubuntu
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Install .NET Core
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+
+    # --- Windows 构建逻辑 ---
+    - name: Setup MSBuild.exe (Windows)
+      if: matrix.platform == 'windows'
+      uses: microsoft/setup-msbuild@v1.1
+
+    - name: Build (Windows)
+      if: matrix.platform == 'windows'
+      run: msbuild UABEAvalonia.sln /restore /p:Configuration=Release
+
+    - name: Remove unused platforms (Windows)
+      if: matrix.platform == 'windows'
+      run: Get-ChildItem -Path "UABEAvalonia\bin\Release\net8.0\runtimes" -Directory | Where-Object { $_.Name -notin @("win-x64", "win7-x64", "win") } | Remove-Item -Recurse -Force
+
+    # --- Ubuntu 构建逻辑 ---
+    - name: Build (Ubuntu)
+      if: matrix.platform == 'ubuntu'
+      run: |
+        dotnet sln UABEAvalonia.sln remove TexToolWrap/TexToolWrap.vcxproj
+        dotnet restore
+        dotnet build --configuration Release --no-restore
+
+    - name: Fix and Clean Runtimes (Ubuntu)
+      if: matrix.platform == 'ubuntu'
+      run: |
+        cp UABEAvalonia/bin/Release/net8.0/runtimes/linux/native/libonigwrap.so UABEAvalonia/bin/Release/net8.0/runtimes/linux-x64/native/libonigwrap.so
+        find UABEAvalonia/bin/Release/net8.0/runtimes/* -maxdepth 0 ! -name linux-x64 -type d -exec rm -r {} +
+
+    - name: Zip Artifacts
+      shell: bash
+      run: |
+        cd UABEAvalonia/bin/Release/net8.0
+        7z a -r ../../../../${{ matrix.artifact_name }}.zip .
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.artifact_name }}
+        path: ${{ matrix.artifact_name }}.zip
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            uabea-windows/uabea-windows.zip
+            uabea-ubuntu/uabea-ubuntu.zip
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

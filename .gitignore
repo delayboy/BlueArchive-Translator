@@ -8,3 +8,6 @@ BlueArchive-Steam-IL2CPP-dump/Cpp2IL.exe
 /BlueArchive_Data
 /.claude
 /BlueArchive-Steam-IL2CPP-dump/Il2CppDumper-master
+/backup_game_files
+other_support_project/*.zip
+other_support_project/*.exe

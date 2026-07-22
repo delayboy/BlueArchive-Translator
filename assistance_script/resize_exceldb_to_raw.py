@@ -29,13 +29,6 @@ import shutil
 import binascii
 import argparse
 
-
-HERE = os.path.dirname(os.path.abspath(__file__))
-TARGET_DB = os.path.join(HERE, "ExcelDB.db")
-REFERENCE_DB = os.path.join(HERE, "ExcelDB-raw.db")
-BACKUP_DB = TARGET_DB + ".bak"
-
-
 # ---------------------------------------------------------------------------
 # CRC32 internals (standard zlib polynomial 0xEDB88320, reflected)
 # ---------------------------------------------------------------------------
@@ -170,7 +163,11 @@ def self_test():
 # Main
 # ---------------------------------------------------------------------------
 
-def main():
+def main(work_dir: str = os.path.dirname(os.path.abspath(__file__))):
+    here = work_dir
+    target_db = os.path.join(here, "ExcelDB.db")
+    reference_db = os.path.join(here, "ExcelDB-raw.db")
+    backup_db = target_db + ".bak"
     parser = argparse.ArgumentParser(
         description="Resize ExcelDB.db to match ExcelDB-raw.db (size + optional CRC32).",
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -189,24 +186,24 @@ def main():
         sys.exit(0 if self_test() else 1)
 
     if args.restore:
-        if not os.path.exists(BACKUP_DB):
-            print(f"[-] No backup at {BACKUP_DB}")
+        if not os.path.exists(backup_db):
+            print(f"[-] No backup at {backup_db}")
             sys.exit(1)
-        shutil.copy2(BACKUP_DB, TARGET_DB)
-        print(f"[+] Restored {TARGET_DB} from {BACKUP_DB}")
+        shutil.copy2(backup_db, target_db)
+        print(f"[+] Restored {target_db} from {backup_db}")
         return
 
-    if not os.path.exists(TARGET_DB):
-        print(f"[-] Missing: {TARGET_DB}")
+    if not os.path.exists(target_db):
+        print(f"[-] Missing: {target_db}")
         sys.exit(1)
-    if not os.path.exists(REFERENCE_DB):
-        print(f"[-] Missing: {REFERENCE_DB}")
+    if not os.path.exists(reference_db):
+        print(f"[-] Missing: {reference_db}")
         sys.exit(1)
 
-    target_size = os.path.getsize(REFERENCE_DB)
-    current_size = os.path.getsize(TARGET_DB)
-    print(f"[*] {os.path.basename(TARGET_DB)}:  {current_size:,} bytes ({current_size/1024/1024:.2f} MB)")
-    print(f"[*] {os.path.basename(REFERENCE_DB)}: {target_size:,} bytes ({target_size/1024/1024:.2f} MB)")
+    target_size = os.path.getsize(reference_db)
+    current_size = os.path.getsize(target_db)
+    print(f"[*] {os.path.basename(target_db)}:  {current_size:,} bytes ({current_size / 1024 / 1024:.2f} MB)")
+    print(f"[*] {os.path.basename(reference_db)}: {target_size:,} bytes ({target_size / 1024 / 1024:.2f} MB)")
 
     if current_size > target_size:
         print(f"[!] Current file is LARGER than reference by {current_size - target_size:,} bytes.")
@@ -221,21 +218,21 @@ def main():
         return
 
     # Backup (only first time)
-    if not os.path.exists(BACKUP_DB):
-        shutil.copy2(TARGET_DB, BACKUP_DB)
-        print(f"[+] Backup created: {BACKUP_DB}")
+    if not os.path.exists(backup_db):
+        shutil.copy2(target_db, backup_db)
+        print(f"[+] Backup created: {backup_db}")
     else:
-        print(f"[*] Backup already exists, leaving it: {BACKUP_DB}")
+        print(f"[*] Backup already exists, leaving it: {backup_db}")
 
     # Read current file fully
     print("[*] Reading current file into memory...")
-    with open(TARGET_DB, "rb") as f:
+    with open(target_db, "rb") as f:
         data = bytearray(f.read())
     assert len(data) == current_size
 
     if diff > 0:
         if need_crc:
-            pad_len = diff - 4          # random/zero padding
+            pad_len = diff - 4  # random/zero padding
             patch_offset = current_size + pad_len  # == target_size - 4
         else:
             pad_len = diff
@@ -254,7 +251,7 @@ def main():
 
     if need_crc:
         print("[*] Computing reference CRC32...")
-        target_crc = crc32_file(REFERENCE_DB)
+        target_crc = crc32_file(reference_db)
         print(f"[*] Target CRC32: {target_crc:08X}")
 
         print(f"[*] Computing CRC32 over prefix ({patch_offset:,} bytes)...")
@@ -274,20 +271,20 @@ def main():
             sys.exit(1)
 
     # Write back
-    print(f"[*] Writing {len(data):,} bytes to {TARGET_DB}...")
-    with open(TARGET_DB, "wb") as f:
+    print(f"[*] Writing {len(data):,} bytes to {target_db}...")
+    with open(target_db, "wb") as f:
         f.write(bytes(data))
 
     # Verify on disk
-    disk_size = os.path.getsize(TARGET_DB)
+    disk_size = os.path.getsize(target_db)
     print(f"[*] On-disk size:  {disk_size:,} (target {target_size:,})")
     if disk_size != target_size:
         print("[!] On-disk size mismatch!")
         sys.exit(1)
 
     if need_crc:
-        disk_crc = crc32_file(TARGET_DB)
-        ref_crc = crc32_file(REFERENCE_DB)
+        disk_crc = crc32_file(target_db)
+        ref_crc = crc32_file(reference_db)
         print(f"[*] On-disk CRC32:     {disk_crc:08X}")
         print(f"[*] Reference CRC32:   {ref_crc:08X}")
         if disk_crc != ref_crc:

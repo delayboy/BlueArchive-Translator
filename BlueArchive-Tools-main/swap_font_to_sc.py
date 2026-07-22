@@ -169,5 +169,5 @@ def main() -> int:
 
 if __name__ == '__main__':
     verify_bundle(BUNDLE_PATH)
-    a = input("是否确认执行替换算法")
+    # a = input("是否确认执行替换算法")
     sys.exit(main())

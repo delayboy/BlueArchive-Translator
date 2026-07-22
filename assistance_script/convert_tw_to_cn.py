@@ -22,6 +22,8 @@ ScenarioScriptExcel.json
 TutorialCharacterDialogExcel.json
 Video_GlobalExcel.json
 """
+
+
 # CharacterDialogEventExcel.json 重新打包有立绘bug，跟翻译没关系，直接打包就会触发立绘消失的bug
 
 def translate_json(dir_path, file_name='ScenarioScriptExcel.json', use_test=True):
@@ -46,25 +48,29 @@ def translate_json(dir_path, file_name='ScenarioScriptExcel.json', use_test=True
                 print(i, file_name, key, item[key])
                 item[key] = ch_converter.convert(item[key])
         if file_name.__contains__("ScenarioScriptExcel"):
-            item['TextJp']=''
-            item['TextTh']=''
+            item['TextJp'] = ''
+            item['TextTh'] = ''
         if use_test:
             break
     if use_test:
         return False
-    with open(f"translate/{file_name}", 'w', encoding='utf-8') as f:
+    with open(os.path.join(os.path.dirname(dir_path), f"translate/{file_name}"), 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
     # os.remove(file_name)
     print(f"Done. {len(data)} entries processed.")
     return True
 
 
-if __name__ == '__main__':
-    dir_path_now = "./ExcelDB"
-    os.makedirs("./translate", exist_ok=True)
+def main(work_dir: str = os.path.abspath(".")):
+    dir_path_now = os.path.join(work_dir, "ExcelDB")
+    os.makedirs(os.path.join(work_dir, "translate"), exist_ok=True)
     filename_fiter = converter_file_names.split("\n")
     for name in os.listdir(dir_path_now):
         if name.endswith("json") and name in filename_fiter:
             if translate_json(dir_path_now, name, False):
                 print(name)
     print(test_key_words)
+
+
+if __name__ == '__main__':
+    main()

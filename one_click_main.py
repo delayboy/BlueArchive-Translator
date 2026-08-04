@@ -71,3 +71,4 @@ if __name__ == '__main__':
     zip_folder = os.path.join(PROJECT_ROOT, "BlueArchive_Data")
     white_list = {BUNDLE_PATH.replace("BlueArchive_Data\\", ""), DB_PATH.replace("BlueArchive_Data\\", "")}
     compress_folder_with_progress(zip_folder, f"{today}-蔚蓝档案steam端简中汉化补丁.zip", white_list=white_list)
+    compress_folder_with_progress(zip_folder, f"{today}-BlueArchive-steam-zh-cn-patch.zip", white_list=white_list)

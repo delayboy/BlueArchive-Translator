@@ -4,7 +4,7 @@ import sys
 import sqlcipher3
 
 DB_PATH = r"ExcelDB.db"
-KEY_HEX = "efa143094711b6563ec2132d4d6bbe8533d4e291ed4820bdb515b26bb57bb3f0"
+KEY_HEX = "ef0aaca06f34b4a4be3172a75a3ea565e815f9ece35b1fb12b7a166ba0807bc4"
 
 
 def connect():

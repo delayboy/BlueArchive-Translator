@@ -6,7 +6,7 @@ import hashlib
 
 PROJECT_ROOT = os.path.dirname(os.path.abspath("."))
 DB_PATH = os.path.join(PROJECT_ROOT, r"BlueArchive_Data\StreamingAssets\PUB\Resource\Preload\TableBundles\ExcelDB.db")
-KEY_HEX = "efa143094711b6563ec2132d4d6bbe8533d4e291ed4820bdb515b26bb57bb3f0"
+KEY_HEX = "ef0aaca06f34b4a4be3172a75a3ea565e815f9ece35b1fb12b7a166ba0807bc4"
 
 
 def format_row(row, blob_index=None):

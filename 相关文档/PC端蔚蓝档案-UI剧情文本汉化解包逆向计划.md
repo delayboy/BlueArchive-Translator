@@ -308,3 +308,39 @@ print(cur.fetchall())
 最终获得如下密钥：
 
 RAGMA key = "x'efa143094711b6563ec2132d4d6bbe8533d4e291ed4820bdb515b26bb57bb3f0'";
+
+
+
+
+
+比对完成。8月版机制与6月**完全同构**——只是密钥值换了，注入流程、3段byte[]拆分（10+10+12）、静态字段布局全部未变。以下为结论。
+
+## 8月版密钥拦截断点（GameAssembly.dll + RVA）
+
+函数本体：`ClientSQLiteConnector_CreateConnection` = `GameAssembly.dll + 0x1985770`（6月版为 `+0x17E32F0`）
+
+| 点位                      | 8月版断点 RVA    | 等价6月版    | 断下后读取方式                                               |
+| ------------------------- | ---------------- | ------------ | ------------------------------------------------------------ |
+| **⭐ 推荐：64字符hex密钥** | **`+0x1985A78`** | `+0x17E3601` | `mov rdx, rbx` 处，**RDX** = 纯hex密钥串（无前后缀），直接读RDX指向的IL2CPP字符串 |
+| ⭐ PRAGMA key 执行点       | **`+0x1985AD9`** | `+0x17E3667` | `ExecuteNonQuery` 调用处，**RDX** = 完整 `PRAGMA key = "x'...'";` SQL |
+| 备用：byte[32]原始字节    | `+0x19859C4`     | `+0x17E3548` | **RAX** = byte[32] 数组对象，读 `[RAX+0x20]` 起32字节，`%02x` 格式化 |
+| 完整SQL（Concat后）       | `+0x1985A83`     | `+0x17E360C` | **RAX** = 拼好的完整 PRAGMA key 语句                         |
+
+注意事项（与6月踩过的坑一致）：
+- `+0x1985A4D` 是 `PRAGMA cipher_license`（许可证）的执行点，会**先于** key 触发——别在这里截，截到的是license不是密钥
+- 若想顺带拿新license：断 `+0x1985A4D`，RDX = cipher_license 语句
+
+## 比对方法（已验证有效）
+
+用6月版密钥构造序列（`mov rcx, cs:KeyData类 → mov rcx,[rax+18h] → call 拼接 → call hex转换 → mov rbx,rax`）制作66字节通配符签名，在8月库中 `find_bytes` 唯一命中 `0x18198598D`，反汇编确认逐指令对应。关键结构变化仅为地址：
+
+| 结构              | 6月               | 8月                                                          |
+| ----------------- | ----------------- | ------------------------------------------------------------ |
+| CreateConnection  | `sub_1817E32F0`   | `sub_181985770`                                              |
+| 3段byte[]拼接函数 | `sub_180F300C0`   | `sub_18107D9C0`（内部3次BlockCopy：0→10→20，长10/10/12，确认密钥仍为32字节） |
+| byte[]→hex函数    | `sub_1817E3980`   | `sub_181985C90`                                              |
+| KeyData类指针     | `qword_18C511E20` | `qword_18CF23D40`（静态字段布局不变：+0xB8 static_fields，+0x18 KeyData对象，+0x20 License串） |
+
+8月版IDB已保存，函数已重命名、断点处已加注释。用x64dbg对 `GameAssembly.dll + 0x1985A78` 下断点，游戏打开ExcelDB.db时截取RDX字符串即为新密钥。
+
+ key = "x'ef0aaca06f34b4a4be3172a75a3ea565e815f9ece35b1fb12b7a166ba0807bc4'";

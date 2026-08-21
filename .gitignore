@@ -12,3 +12,8 @@ BlueArchive-Steam-IL2CPP-dump/Cpp2IL.exe
 other_support_project/*.zip
 other_support_project/*.exe
 *.pyc
+/BlueArchive-Tools-main/build
+/BlueArchive-Tools-main/dist
+BlueArchive-Tools-main/BlueArchivePatcher.spec
+*.exe
+BlueArchive-Tools-main/BlueArchiveCnPatcher.spec

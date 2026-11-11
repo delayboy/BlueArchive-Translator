@@ -1,0 +1,1 @@
+dotnet publish Il2CppInspector.CLI/Il2CppInspector.CLI.csproj -c Release

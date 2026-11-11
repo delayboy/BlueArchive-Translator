@@ -47,7 +47,8 @@ class IL2CppDumper:
             FileDownloader(il2cpp_zip_url).save_file(zip_path)
 
         extract_path = path.join(save_path, "Il2CppInspector")
-        ZipUtils.extract_zip(zip_path, extract_path)
+        if not os.path.exists(extract_path):
+            ZipUtils.extract_zip(zip_path, extract_path)
         self.project_dir = extract_path
 
         if os_name == "win":

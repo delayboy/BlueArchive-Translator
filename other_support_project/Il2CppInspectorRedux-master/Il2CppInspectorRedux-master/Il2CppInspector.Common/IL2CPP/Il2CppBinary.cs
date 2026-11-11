@@ -294,6 +294,15 @@ namespace Il2CppInspector
              * typeRefPointers must be a series of pointers in __const
              * MethodInvokePointers must be a series of pointers in __text or .text, and in sequential order
              */
+            // BEGIN DEBUG DIAGNOSTICS ( Benson )
+            AnsiConsole.WriteLine($"[DBG] Image.Version = {Image.Version}, CR ptr = 0x{codeRegistration:X16}, MR ptr = 0x{metadataRegistration:X16}");
+            AnsiConsole.WriteLine($"[DBG] Metadata.Types.Length = {Metadata?.Types.Length}, MR.TypeDefinitionsSizesCount = {MetadataRegistration.TypeDefinitionsSizesCount}");
+            AnsiConsole.WriteLine($"[DBG] CR.ReversePInvokeWrapperCount = {CodeRegistration.ReversePInvokeWrapperCount} (<=0x10000?)");
+            AnsiConsole.WriteLine($"[DBG] CR.UnresolvedVirtualCallCount = {CodeRegistration.UnresolvedVirtualCallCount} (<=0x8000?)");
+            AnsiConsole.WriteLine($"[DBG] CR.InteropDataCount = {CodeRegistration.InteropDataCount} (<=0x2000?)");
+            AnsiConsole.WriteLine($"[DBG] CR.InvokerPointersCount = {CodeRegistration.InvokerPointersCount}, CR.MethodPointersCount = {CodeRegistration.MethodPointersCount}");
+            // END DEBUG DIAGNOSTICS
+
             if ((Metadata != null && Metadata.Types.Length != MetadataRegistration.TypeDefinitionsSizesCount)
                 || CodeRegistration.ReversePInvokeWrapperCount > 0x10000
                 // L-NOTE: These below boundaries have been updated already as some games

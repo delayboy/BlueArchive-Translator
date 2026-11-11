@@ -2,7 +2,7 @@ import sqlcipher3 as sqlite3
 
 from lib.structure import DBColumn, DBTable
 from utils.config import Config
-KEY_HEX = "ef0aaca06f34b4a4be3172a75a3ea565e815f9ece35b1fb12b7a166ba0807bc4"
+KEY_HEX = "05f508236ff3dc4e5dc7cb6fcea0ede0d90a89753dc5e5d36c30393e9b072f48"
 class TableDatabase:
     def __init__(self, database: str) -> None:
         self.database = database

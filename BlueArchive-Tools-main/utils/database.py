@@ -2,14 +2,13 @@ import sqlcipher3 as sqlite3
 
 from lib.structure import DBColumn, DBTable
 from utils.config import Config
-KEY_HEX = "05f508236ff3dc4e5dc7cb6fcea0ede0d90a89753dc5e5d36c30393e9b072f48"
 class TableDatabase:
     def __init__(self, database: str) -> None:
         self.database = database
         self.connection = sqlite3.connect(self.database)
         cursor = self.connection.cursor()
     # Hex key format - SQLCipher treats this as a raw 32-byte key (no KDF)
-        cursor.execute(f"PRAGMA key = \"x'{KEY_HEX}'\";")
+        cursor.execute(f"PRAGMA key = \"x'{Config.db_password}'\";")
         try:
             cursor.execute("SELECT count(*) FROM sqlite_master;")
             print("数据库连接成功！")

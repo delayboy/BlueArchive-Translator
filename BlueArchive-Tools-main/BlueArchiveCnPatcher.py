@@ -18,7 +18,9 @@ import _ssl
 from FlatData import *
 import FlatData.dump_wrapper
 import FlatData.repack_wrapper
+from utils.config import Config
 
+KEY_HEX = "05f508236ff3dc4e5dc7cb6fcea0ede0d90a89753dc5e5d36c30393e9b072f48"
 PRELOAD_PATH = r"BlueArchive_Data\StreamingAssets\PUB\Resource\Preload"
 BUNDLE_NAME = 'prologdepengroup-assets-_mx-uis-_mxcommon-_mxprolog-2026-03-13_assets_all_842690403.bundle'
 EXCEL_DB_NAME = 'ExcelDB.db'
@@ -55,6 +57,7 @@ def check_if_file_right_from_install_dir(resource_path: str, md5_json: dict) -> 
 
 if __name__ == '__main__':
     json_dic = {}
+    Config.db_password = KEY_HEX
     pro_bundle_path = get_bundled_resource(os.path.join('bundled_assets', BUNDLE_NAME))
     if not os.path.exists(pro_bundle_path):
         # 开发模式回退：直接用游戏目录里的 bundle（此情况下源和目标是同一个文件）

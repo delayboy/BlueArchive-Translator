@@ -1,4 +1,33 @@
-# 2026-08-22补丁方式调整公告
+# 蔚蓝档案 Steam 端简中汉化补丁 v0.2.0 
+
+## 2026-11-16 更新公告
+
+### 本版本亮点：全自动汉化模式 🎉
+告别"游戏一更新就要等作者发新密钥"！新增 `winmm.dll` 劫持模块：游戏启动时自动拦截数据库密钥，并自动调用汉化程序完成翻译，全程无需手动干预。**全自动密钥拦截，游戏更新无需再等发版**。
+
+注意，本项目中无dll劫持代码，具体劫持代码可参考联动项目：https://github.com/delayboy/winmm-proxy
+
+### 使用方法
+1. 下载 `BlueArchiveCnPatcher.exe`，拷贝到游戏安装目录（和 `BlueArchive.exe` 放同一目录）
+2. 双击运行一次，程序会自动释放 `winmm.dll` 到同目录，按提示操作
+3. 正常启动游戏（Steam / 官方启动器均可）
+4. 游戏启动时会弹出控制台窗口和 UAC 提示，请点击「是」
+5. 控制台显示 patch 完成日志后，删除【winmm.dll】重新进入游戏即为汉化版
+6. 一定要删除【winmm.dll】游戏才可正常启动！！！为避免封号，注入脚本拦截密钥后会直接终止游戏进程，**不删除dll会导致游戏无法正常运行**。
+
+- **进阶用法：** 已知密钥时可直接执行 `BlueArchiveCnPatcher.exe --db-password <密钥hex>` 跳过拦截步骤
+
+### 说明
+本项目仅供学习交流使用
+
+> PC 端《蔚蓝档案》（Blue Archive, Steam IL2CPP 版）UI / 剧情文本汉化与资源修改工作目录。
+> 采用 **离线解包 → 翻译/修改 → 重新打包 → 绕过完整性校验** 的工作流，无需内存 Hook 或网络代理。
+
+> [!IMPORTANT]
+> 本仓库仅用于**个人学习与本地化研究**。[B站视频教程链接](https://www.bilibili.com/video/BV1aBja6sESp/)
+> "Blue Archive" 是 NEXON Korea Corp. & NEXON GAMES Co., Ltd. 的注册商标。使用本仓库任何成果时，请确保遵守当地法律法规，自负风险。
+
+## 2026-08-22补丁方式调整公告
 
 （往期补丁已全量删除，现改用新模式实现一键汉化）
 - 由于大版本更新后，游戏数据库密钥已更换，已重新逆向并更新了仓库代码
@@ -7,15 +36,6 @@
 - 因此本项目进行了小幅度重构，目前Release不再发版成品补丁
 - 作为平替，可使用【BlueArchiveCnPatcher.exe】命令行工具，拷贝到游戏安装目录下（和BlueArchive.exe放到同一目录）执行自动翻译
 - 点击exe脚本实现一键自动翻译，程序会自动解析游戏目录下资源文件，并自动执行相应的汉化工作。
-
-# BlueArchive-Hack
-
-> PC 端《蔚蓝档案》（Blue Archive, Steam IL2CPP 版）UI / 剧情文本汉化与资源修改工作目录。
-> 采用 **离线解包 → 翻译/修改 → 重新打包 → 绕过完整性校验** 的工作流，无需内存 Hook 或网络代理。
-
-> [!IMPORTANT]
-> 本仓库仅用于**个人学习与本地化研究**。[B站视频教程链接](https://www.bilibili.com/video/BV1aBja6sESp/)
-> "Blue Archive" 是 NEXON Korea Corp. & NEXON GAMES Co., Ltd. 的注册商标。使用本仓库任何成果时，请确保遵守当地法律法规，自负风险。
 
 ---
 

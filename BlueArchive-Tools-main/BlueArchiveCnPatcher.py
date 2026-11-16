@@ -1,5 +1,6 @@
 import os
 import sys
+import argparse
 from pathlib import Path
 import re
 import winreg
@@ -20,7 +21,7 @@ import FlatData.dump_wrapper
 import FlatData.repack_wrapper
 from utils.config import Config
 
-KEY_HEX = "05f508236ff3dc4e5dc7cb6fcea0ede0d90a89753dc5e5d36c30393e9b072f48"
+KEY_HEX = "" # 05f508236ff3dc4e5dc7cb6fcea0ede0d90a89753dc5e5d36c30393e9b072f48
 PRELOAD_PATH = r"BlueArchive_Data\StreamingAssets\PUB\Resource\Preload"
 BUNDLE_NAME = 'prologdepengroup-assets-_mx-uis-_mxcommon-_mxprolog-2026-03-13_assets_all_842690403.bundle'
 EXCEL_DB_NAME = 'ExcelDB.db'
@@ -55,9 +56,57 @@ def check_if_file_right_from_install_dir(resource_path: str, md5_json: dict) -> 
         return False
 
 
+def get_exe_dir() -> str:
+    """exe 所在目录（打包后为 exe 自身目录，开发模式为脚本目录）"""
+    if getattr(sys, 'frozen', False):
+        return os.path.dirname(sys.executable)
+    return os.path.dirname(os.path.abspath(__file__))
+
+
+def deploy_winmm_dll():
+    """db_password 为空时：解压内嵌的 winmm.dll 到 exe 同级目录，并提示自动汉化用法"""
+    src = get_bundled_resource('winmm.dll')
+    if not os.path.exists(src):
+        print("错误: exe 内未找到 winmm.dll 资源, 请重新打包")
+        sys.exit(1)
+    dst = os.path.join(get_exe_dir(), 'winmm.dll')
+    if os.path.abspath(src) != os.path.abspath(dst):
+        shutil.copy2(src, dst)
+    print("=" * 60)
+    print("未指定数据库密钥(--db-password), 已进入【自动获取密钥】模式")
+    print()
+    print(f"已解压 winmm.dll 到本程序所在目录: {dst}")
+    print()
+    print("使用方法:")
+    print("  1. 确认本程序已放在游戏安装目录(和 BlueArchive.exe 同一目录)")
+    print("  2. 正常启动游戏(官方启动器/Steam 均可), 无需手动输入密钥")
+    print("  3. 游戏启动时 winmm.dll 会自动拦截游戏的数据库密钥,")
+    print("     并自动调用本程序完成汉化")
+    print("  4. 期间弹出 UAC(用户账户控制) 提示时请点击\"是\"")
+    print("  5. 弹出的控制台窗口显示 patch 完成日志后, 即可正常进游戏")
+    print()
+    print("提示: 若之后游戏更新导致汉化失效, 重新运行本程序一次即可")
+    print("=" * 60)
+    input("按回车键退出...")
+    sys.exit(0)
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="蔚蓝档案国服汉化补丁工具")
+    parser.add_argument(
+        '--db-password',
+        default=KEY_HEX,
+        help="ExcelDB.db 的 SQLCipher 密钥(hex); 不填则解压 winmm.dll, 由游戏启动时自动拦截密钥并回调本程序",
+    )
+    return parser.parse_args()
+
+
 if __name__ == '__main__':
+    args = parse_args()
+    if not args.db_password:
+        deploy_winmm_dll()
     json_dic = {}
-    Config.db_password = KEY_HEX
+    Config.db_password = args.db_password
     pro_bundle_path = get_bundled_resource(os.path.join('bundled_assets', BUNDLE_NAME))
     if not os.path.exists(pro_bundle_path):
         # 开发模式回退：直接用游戏目录里的 bundle（此情况下源和目标是同一个文件）
@@ -87,4 +136,4 @@ if __name__ == '__main__':
             shutil.copy2(pro_bundle_path, BUNDLE_PATH)
     if os.path.exists(TRANSLATE_PATH):
         shutil.rmtree(TRANSLATE_PATH)
-    input("程序执行完成，按任意键退出:\n")
+    # input("程序执行完成，按任意键退出:\n")

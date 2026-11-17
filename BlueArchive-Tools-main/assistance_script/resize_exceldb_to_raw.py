@@ -180,7 +180,10 @@ def main(work_dir: str = os.path.dirname(os.path.abspath(__file__))):
                         help="run CRC patcher self-test and exit")
     parser.add_argument("--zeros", action="store_true",
                         help="pad with 0x00 instead of random bytes")
-    args = parser.parse_args()
+    # parse_known_args: 本脚本会被 BlueArchiveCnPatcher import 调用，
+    # 此时 sys.argv 带宿主的参数(如 --db-password)，直接 parse_args 会报
+    # unrecognized arguments 退出，必须忽略未知参数
+    args, _ = parser.parse_known_args()
 
     if args.self_test:
         sys.exit(0 if self_test() else 1)
